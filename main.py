@@ -84,6 +84,15 @@ def claims_and_probabilities(n, t, previous_claim):
     return sorted(claims_and_probs, key=lambda x: x[1])[::-1]
 
 
+#
+
+def top_x_most_probable_claims(x, claims_and_probs):
+    for i in range(x):
+        print("There are {} {}'s => {}".format(claims_and_probs[i][0][0],
+                                               claims_and_probs[i][0][1],
+                                               str(round(claims_and_probs[i][1] * 100, 2)) + "%"))
+
+
 # action_of_choice returns the best move given the most probable claim and its probability
 # and the probability of the previous claim.
 
@@ -112,16 +121,27 @@ def infinite_claims():
             return
         n = int(a)
         print("Which cards do you have?")
-        your = input()
+        your_cards_input = input()
         print("Which other cards do you think are on the table?")
-        table = input()
+        other_cards_input = input()
         print("What do you claim?")
-        c = claim_handler(input())
-        yoursdict = card_handler(your)
-        totaldict = card_handler(your + " " + table)
+        claim = claim_handler(input())
+
+        all_cards_dict = card_handler(your_cards_input)
+        your_cards_dict = card_handler(your_cards_input + " " + other_cards_input)
         print("If what you think about the other cards are true, the probability of the claim is",
-              goodformat(claim_p(n, totaldict, c)))
-        print("Based just on your own cards, the probability is", goodformat(claim_p(n, yoursdict, c)))
+              goodformat(claim_p(n, your_cards_dict, claim)))
+        print("Based just on your own cards, the probability is", goodformat(claim_p(n, all_cards_dict, claim)))
+
+        best_claim_and_p_based_on_all = claims_and_probabilities(n, all_cards_dict, claim)
+        best_claim_and_p_based_on_yours = claims_and_probabilities(n, your_cards_dict, claim)
+
+        print("\nTop 10 claims you can make")
+        print("\nIf you are right about the cards:")
+        top_x_most_probable_claims(10, best_claim_and_p_based_on_all)
+
+        print("\nIf we consider only the cards you have:")
+        top_x_most_probable_claims(10, best_claim_and_p_based_on_yours)
 
 
 # "liars: the game". keeps all the information about how the game progresses.
@@ -167,17 +187,13 @@ def game(n):
     best_claim_and_p_based_on_yours = claims_and_probabilities(n, your_cards_dict, previous_claim)
 
     print("\nTop 10 claims you can make")
-    print("\nIf you are right about the cards:")
 
-    for i in range(10):
-        print("There are {} {}'s => {}".format(best_claim_and_p_based_on_all[i][0][0],
-                                               best_claim_and_p_based_on_all[i][0][1],
-                                               str(round(best_claim_and_p_based_on_all[i][1] * 100, 2)) + "%"))
+    print("\nIf you are right about the cards:")
+    top_x_most_probable_claims(10, best_claim_and_p_based_on_all)
+
     print("\nIf we consider only the cards you have:")
-    for i in range(10):
-        print("There are {} {}'s => {}".format(best_claim_and_p_based_on_yours[i][0][0],
-                                               best_claim_and_p_based_on_yours[i][0][1],
-                                               str(round(best_claim_and_p_based_on_yours[i][1] * 100, 2)) + "%"))
+    top_x_most_probable_claims(10, best_claim_and_p_based_on_yours)
+
     print(
         "\nYour best action would be to {} if you are right about the cards. \nIf not, best action would be to {}."
         .format(
